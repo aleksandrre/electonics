@@ -22,183 +22,233 @@ const CircuitDiagram = () => {
   };
 
   const calculateSvgWidth = (elements) => {
-    return Math.max(800, elements * 120 + 300);
+    return Math.max(1200, elements * 120 + 500);
   };
 
-  const renderSocketCircuit = (room, index) => {
-    const sockets = parseInt(room.sockets);
-    const svgWidth = calculateSvgWidth(sockets);
-    const svgHeight = 200;
-    const lastSocketX = 150 + (sockets - 1) * 120;
-
-    return (
-      <div className="mb-6">
-        <h3 className="text-lg font-medium mb-2">
-          {room.roomName}ს როზეტების ხაზი
-        </h3>
-        <div className="overflow-x-auto">
-          <div style={{ minWidth: `${svgWidth}px` }}>
-            <svg
-              viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-              className="w-full h-full border rounded"
-            >
-              {/* ავტომატი */}
-              <rect x="50" y="80" width="40" height="60" fill="gray" />
-              <text x="45" y="70" className="text-sm">
-                ავტომატი
-              </text>
-
-              {/* მთავარი ხაზები */}
-              <line
-                x1="90"
-                y1="90"
-                x2={lastSocketX + 20}
-                y2="90"
-                stroke="black"
-                strokeWidth="2"
-              />
-              <line
-                x1="90"
-                y1="130"
-                x2={lastSocketX + 20}
-                y2="130"
-                stroke="black"
-                strokeWidth="2"
-              />
-
-              {/* როზეტები */}
-              {[...Array(sockets)].map((_, i) => {
-                const x = 150 + i * 120;
-                return (
-                  <g key={`socket-${i}`}>
-                    <rect
-                      x={x - 20}
-                      y="90"
-                      width="40"
-                      height="40"
-                      fill="white"
-                      stroke="black"
-                    />
-                    <circle cx={x} cy="105" r="4" fill="black" />
-                    <circle cx={x} cy="115" r="4" fill="black" />
-                    <text x={x} y="150" textAnchor="middle" className="text-sm">
-                      როზეტი {i + 1}
-                    </text>
-                  </g>
-                );
-              })}
-            </svg>
-          </div>
-        </div>
-      </div>
+  const renderMainPanel = () => {
+    const panelHeight = Math.max(600, rooms.length * 250 + 100);
+    const maxWidth = Math.max(
+      ...rooms.map((room) =>
+        Math.max(
+          calculateSvgWidth(parseInt(room.sockets)),
+          calculateSvgWidth(parseInt(room.lights))
+        )
+      )
     );
-  };
-
-  const renderLightCircuit = (room, index) => {
-    const lights = parseInt(room.lights);
-    const svgWidth = calculateSvgWidth(lights);
-    const svgHeight = 200;
-    const lastLightX = 150 + (lights - 1) * 120;
 
     return (
-      <div>
-        <h3 className="text-lg font-medium mb-2">
-          {room.roomName}ს განათების ხაზი
-        </h3>
+      <div className="mb-10">
+        <h3 className="text-lg font-medium mb-2">ელექტრო სქემა</h3>
         <div className="overflow-x-auto">
-          <div style={{ minWidth: `${svgWidth}px` }}>
+          <div style={{ minWidth: `${maxWidth}px` }}>
             <svg
-              viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-              className="w-full h-full border rounded"
+              viewBox={`0 0 ${maxWidth} ${panelHeight}`}
+              className="w-full border rounded"
             >
-              {/* ავტომატი */}
-              <rect x="50" y="80" width="40" height="60" fill="gray" />
-              <text x="45" y="70" className="text-sm">
-                ავტომატი
+              {/* კარადის კორპუსი */}
+              <rect
+                x="50"
+                y="20"
+                width="200"
+                height={panelHeight - 40}
+                fill="#d1d5db"
+                stroke="black"
+              />
+              <text
+                x="150"
+                y="50"
+                textAnchor="middle"
+                className="text-sm font-bold"
+              >
+                მთავარი კარადა
               </text>
 
-              {/* ზედა მთავარი ხაზი */}
-              <line
-                x1="90"
-                y1="90"
-                x2={lastLightX + 20}
-                y2="90"
-                stroke="black"
-                strokeWidth="2"
-              />
+              {/* ოთახების წრედები */}
+              {rooms.map((room, index) => {
+                const baseY = 120 + index * 250;
+                const sockets = parseInt(room.sockets);
+                const lights = parseInt(room.lights);
+                const circuitStartX = 350;
+                const automatOffset = 70;
 
-              {/* ნათურები და მათი ვერტიკალური კაბელები */}
-              {[...Array(lights)].map((_, i) => {
-                const x = 150 + i * 120;
                 return (
-                  <g key={`light-${i}`}>
-                    {/* ნათურა */}
-                    <circle
-                      cx={x}
-                      cy="90"
-                      r="20"
-                      fill="yellow"
-                      stroke="black"
-                    />
-                    {/* ვერტიკალური კაბელი */}
-                    <line
-                      x1={x}
-                      y1="110"
-                      x2={x}
-                      y2="130"
-                      stroke="black"
-                      strokeWidth="2"
-                    />
-                    {/* ნომერი */}
-                    <text x={x} y="150" textAnchor="middle" className="text-sm">
-                      სანათი {i + 1}
+                  <g key={`room-${index}`}>
+                    <text
+                      x="150"
+                      y={baseY - 30}
+                      textAnchor="middle"
+                      className="text-sm font-bold"
+                    >
+                      {room.roomName}
                     </text>
-                    {/* ქვედა კაბელის სეგმენტი მხოლოდ წინა ნათურამდე */}
-                    {i < lights - 1 && (
+
+                    {/* როზეტების წრედი */}
+                    <g>
+                      {/* კარადის როზეტების ავტომატი */}
+                      <rect
+                        x="100"
+                        y={baseY}
+                        width="60"
+                        height="40"
+                        fill="gray"
+                        stroke="black"
+                      />
+                      <text
+                        x="130"
+                        y={baseY + 25}
+                        textAnchor="middle"
+                        className="text-xs fill-white"
+                      >
+                        როზეტები
+                      </text>
+
+                      {/* კარადიდან პირდაპირ გამომავალი ხაზი */}
                       <line
-                        x1={x}
-                        y1="130"
-                        x2={x + 120}
-                        y2="130"
+                        x1="160"
+                        y1={baseY + 20}
+                        x2={circuitStartX}
+                        y2={baseY + 20}
                         stroke="black"
                         strokeWidth="2"
                       />
-                    )}
+
+                      {/* როზეტების ძირითადი ხაზები */}
+                      <line
+                        x1={circuitStartX}
+                        y1={baseY + 20}
+                        x2={circuitStartX + (sockets - 1) * 120 + 20}
+                        y2={baseY + 20}
+                        stroke="black"
+                        strokeWidth="2"
+                      />
+                      <line
+                        x1={circuitStartX}
+                        y1={baseY + 60}
+                        x2={circuitStartX + (sockets - 1) * 120 + 20}
+                        y2={baseY + 60}
+                        stroke="black"
+                        strokeWidth="2"
+                      />
+
+                      {/* როზეტები */}
+                      {[...Array(sockets)].map((_, i) => {
+                        const x = circuitStartX + i * 120;
+                        return (
+                          <g key={`socket-${i}`}>
+                            <rect
+                              x={x - 20}
+                              y={baseY + 20}
+                              width="40"
+                              height="40"
+                              fill="white"
+                              stroke="black"
+                            />
+                            <circle cx={x} cy={baseY + 35} r="4" fill="black" />
+                            <circle cx={x} cy={baseY + 45} r="4" fill="black" />
+                            <text
+                              x={x}
+                              y={baseY + 80}
+                              textAnchor="middle"
+                              className="text-xs"
+                            >
+                              როზეტი {i + 1}
+                            </text>
+                          </g>
+                        );
+                      })}
+                    </g>
+
+                    {/* განათების წრედი */}
+                    <g>
+                      {/* კარადის განათების ავტომატი */}
+                      <rect
+                        x="100"
+                        y={baseY + automatOffset}
+                        width="60"
+                        height="40"
+                        fill="gray"
+                        stroke="black"
+                      />
+                      <text
+                        x="130"
+                        y={baseY + automatOffset + 25}
+                        textAnchor="middle"
+                        className="text-xs fill-white"
+                      >
+                        განათება
+                      </text>
+
+                      {/* კარადიდან პირდაპირ გამომავალი ხაზი */}
+                      <line
+                        x1="160"
+                        y1={baseY + automatOffset + 20}
+                        x2={circuitStartX}
+                        y2={baseY + 120}
+                        stroke="black"
+                        strokeWidth="2"
+                      />
+
+                      {/* განათების ძირითადი ხაზი */}
+                      <line
+                        x1={circuitStartX}
+                        y1={baseY + 120}
+                        x2={circuitStartX + (lights - 1) * 120 + 20}
+                        y2={baseY + 120}
+                        stroke="black"
+                        strokeWidth="2"
+                      />
+
+                      {/* ნათურები */}
+                      {[...Array(lights)].map((_, i) => {
+                        const x = circuitStartX + i * 120;
+                        return (
+                          <g key={`light-${i}`}>
+                            <circle
+                              cx={x}
+                              cy={baseY + 120}
+                              r="20"
+                              fill="yellow"
+                              stroke="black"
+                            />
+                            <line
+                              x1={x}
+                              y1={baseY + 140}
+                              x2={x}
+                              y2={baseY + 160}
+                              stroke="black"
+                              strokeWidth="2"
+                            />
+                            <text
+                              x={x}
+                              y={baseY + 180}
+                              textAnchor="middle"
+                              className="text-xs"
+                            >
+                              სანათი {i + 1}
+                            </text>
+                            {i < lights - 1 && (
+                              <line
+                                x1={x}
+                                y1={baseY + 160}
+                                x2={x + 120}
+                                y2={baseY + 160}
+                                stroke="black"
+                                strokeWidth="2"
+                              />
+                            )}
+                          </g>
+                        );
+                      })}
+                    </g>
                   </g>
                 );
               })}
-
-              {/* ქვედა კაბელის საწყისი სეგმენტი ავტომატიდან პირველ ნათურამდე */}
-              <line
-                x1="90"
-                y1="130"
-                x2="150"
-                y2="130"
-                stroke="black"
-                strokeWidth="2"
-              />
             </svg>
           </div>
         </div>
       </div>
     );
   };
-
-  const renderRoomCard = (room, index) => (
-    <div key={index} className="bg-white rounded-lg shadow p-6 mb-6">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-xl font-bold">{room.roomName}</h3>
-        <button
-          onClick={() => handleDeleteRoom(index)}
-          className="text-red-500 hover:text-red-700"
-        >
-          <X size={20} />
-        </button>
-      </div>
-      {renderSocketCircuit(room, index)}
-      {renderLightCircuit(room, index)}
-    </div>
-  );
 
   return (
     <div className="bg-gray-100 min-h-screen py-8 px-4">
@@ -265,9 +315,8 @@ const CircuitDiagram = () => {
           </form>
         </div>
 
-        <div className="space-y-6">
-          {rooms.map((room, index) => renderRoomCard(room, index))}
-        </div>
+        {/* მთავარი სქემა */}
+        {rooms.length > 0 && renderMainPanel()}
       </div>
     </div>
   );
