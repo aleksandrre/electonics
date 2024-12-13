@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { Lamp, Power, Home } from "lucide-react";
+import { Lamp, Power, Home, Plus, X } from "lucide-react";
 
 const CircuitDiagram = () => {
-  const [formData, setFormData] = useState({
+  const [rooms, setRooms] = useState([]);
+  const [currentRoom, setCurrentRoom] = useState({
     roomName: "",
     sockets: "",
     lights: "",
@@ -10,18 +11,25 @@ const CircuitDiagram = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (currentRoom.roomName && currentRoom.sockets && currentRoom.lights) {
+      setRooms([...rooms, currentRoom]);
+      setCurrentRoom({ roomName: "", sockets: "", lights: "" });
+    }
   };
 
-  const renderSocketCircuit = () => {
-    if (!formData.sockets) return null;
-    const sockets = parseInt(formData.sockets);
+  const handleDeleteRoom = (index) => {
+    setRooms(rooms.filter((_, i) => i !== index));
+  };
+
+  const renderSocketCircuit = (room, index) => {
+    const sockets = parseInt(room.sockets);
     const svgWidth = 800;
     const svgHeight = 200;
 
     return (
       <div className="mb-6">
         <h3 className="text-lg font-medium mb-2">
-          {formData.roomName}ს როზეტების ხაზი
+          {room.roomName}ს როზეტების ხაზი
         </h3>
         <svg
           viewBox={`0 0 ${svgWidth} ${svgHeight}`}
@@ -77,16 +85,15 @@ const CircuitDiagram = () => {
     );
   };
 
-  const renderLightCircuit = () => {
-    if (!formData.lights) return null;
-    const lights = parseInt(formData.lights);
+  const renderLightCircuit = (room, index) => {
+    const lights = parseInt(room.lights);
     const svgWidth = 800;
     const svgHeight = 200;
 
     return (
       <div>
         <h3 className="text-lg font-medium mb-2">
-          {formData.roomName}ს განათების ხაზი
+          {room.roomName}ს განათების ხაზი
         </h3>
         <svg
           viewBox={`0 0 ${svgWidth} ${svgHeight}`}
@@ -141,71 +148,89 @@ const CircuitDiagram = () => {
     );
   };
 
-  return (
-    <div className="bg-white rounded-lg shadow-lg p-6">
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold">ელექტრო სქემის დაგეგმარება</h2>
+  const renderRoomCard = (room, index) => (
+    <div key={index} className="bg-white rounded-lg shadow p-6 mb-6">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-xl font-bold">{room.roomName}</h3>
+        <button
+          onClick={() => handleDeleteRoom(index)}
+          className="text-red-500 hover:text-red-700"
+        >
+          <X size={20} />
+        </button>
       </div>
-      <div>
-        <form onSubmit={handleSubmit} className="space-y-4 mb-6">
-          <div className="grid grid-cols-3 gap-4">
-            <div className="relative">
-              <Home
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                size={20}
-              />
-              <input
-                type="text"
-                placeholder="ოთახის სახელი"
-                className="pl-10 p-2 border rounded w-full"
-                value={formData.roomName}
-                onChange={(e) =>
-                  setFormData({ ...formData, roomName: e.target.value })
-                }
-              />
+      {renderSocketCircuit(room, index)}
+      {renderLightCircuit(room, index)}
+    </div>
+  );
+
+  return (
+    <div className="bg-gray-100 min-h-screen py-8 px-4">
+      <div className="max-w-6xl mx-auto">
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+          <h2 className="text-2xl font-bold mb-6">
+            ელექტრო სქემის დაგეგმარება
+          </h2>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-3 gap-4">
+              <div className="relative">
+                <Home
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                  size={20}
+                />
+                <input
+                  type="text"
+                  placeholder="ოთახის სახელი"
+                  className="pl-10 p-2 border rounded w-full"
+                  value={currentRoom.roomName}
+                  onChange={(e) =>
+                    setCurrentRoom({ ...currentRoom, roomName: e.target.value })
+                  }
+                />
+              </div>
+              <div className="relative">
+                <Power
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                  size={20}
+                />
+                <input
+                  type="number"
+                  placeholder="როზეტების რაოდენობა"
+                  className="pl-10 p-2 border rounded w-full"
+                  value={currentRoom.sockets}
+                  onChange={(e) =>
+                    setCurrentRoom({ ...currentRoom, sockets: e.target.value })
+                  }
+                />
+              </div>
+              <div className="relative">
+                <Lamp
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                  size={20}
+                />
+                <input
+                  type="number"
+                  placeholder="სანათების რაოდენობა"
+                  className="pl-10 p-2 border rounded w-full"
+                  value={currentRoom.lights}
+                  onChange={(e) =>
+                    setCurrentRoom({ ...currentRoom, lights: e.target.value })
+                  }
+                />
+              </div>
             </div>
-            <div className="relative">
-              <Power
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                size={20}
-              />
-              <input
-                type="number"
-                placeholder="როზეტების რაოდენობა"
-                className="pl-10 p-2 border rounded w-full"
-                value={formData.sockets}
-                onChange={(e) =>
-                  setFormData({ ...formData, sockets: e.target.value })
-                }
-              />
-            </div>
-            <div className="relative">
-              <Lamp
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                size={20}
-              />
-              <input
-                type="number"
-                placeholder="სანათების რაოდენობა"
-                className="pl-10 p-2 border rounded w-full"
-                value={formData.lights}
-                onChange={(e) =>
-                  setFormData({ ...formData, lights: e.target.value })
-                }
-              />
-            </div>
-          </div>
-          <button
-            type="submit"
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-full"
-          >
-            სქემის დახატვა
-          </button>
-        </form>
+            <button
+              type="submit"
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-full flex items-center justify-center gap-2"
+            >
+              <Plus size={20} />
+              ოთახის დამატება
+            </button>
+          </form>
+        </div>
 
         <div className="space-y-6">
-          {renderSocketCircuit()}
-          {renderLightCircuit()}
+          {rooms.map((room, index) => renderRoomCard(room, index))}
         </div>
       </div>
     </div>
