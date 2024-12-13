@@ -21,129 +21,165 @@ const CircuitDiagram = () => {
     setRooms(rooms.filter((_, i) => i !== index));
   };
 
+  const calculateSvgWidth = (elements) => {
+    return Math.max(800, elements * 120 + 300);
+  };
+
   const renderSocketCircuit = (room, index) => {
     const sockets = parseInt(room.sockets);
-    const svgWidth = 800;
+    const svgWidth = calculateSvgWidth(sockets);
     const svgHeight = 200;
+    const lastSocketX = 150 + (sockets - 1) * 120;
 
     return (
       <div className="mb-6">
         <h3 className="text-lg font-medium mb-2">
           {room.roomName}ს როზეტების ხაზი
         </h3>
-        <svg
-          viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-          className="w-full h-full border rounded"
-        >
-          {/* ავტომატი */}
-          <rect x="50" y="80" width="40" height="60" fill="gray" />
-          <text x="45" y="70" className="text-sm">
-            ავტომატი
-          </text>
+        <div className="overflow-x-auto">
+          <div style={{ minWidth: `${svgWidth}px` }}>
+            <svg
+              viewBox={`0 0 ${svgWidth} ${svgHeight}`}
+              className="w-full h-full border rounded"
+            >
+              {/* ავტომატი */}
+              <rect x="50" y="80" width="40" height="60" fill="gray" />
+              <text x="45" y="70" className="text-sm">
+                ავტომატი
+              </text>
 
-          {/* მთავარი ხაზები */}
-          <line
-            x1="90"
-            y1="90"
-            x2="750"
-            y2="90"
-            stroke="black"
-            strokeWidth="2"
-          />
-          <line
-            x1="90"
-            y1="130"
-            x2="750"
-            y2="130"
-            stroke="black"
-            strokeWidth="2"
-          />
+              {/* მთავარი ხაზები */}
+              <line
+                x1="90"
+                y1="90"
+                x2={lastSocketX + 20}
+                y2="90"
+                stroke="black"
+                strokeWidth="2"
+              />
+              <line
+                x1="90"
+                y1="130"
+                x2={lastSocketX + 20}
+                y2="130"
+                stroke="black"
+                strokeWidth="2"
+              />
 
-          {/* როზეტები */}
-          {[...Array(sockets)].map((_, i) => {
-            const x = 150 + i * 120;
-            return (
-              <g key={`socket-${i}`}>
-                <rect
-                  x={x - 20}
-                  y="90"
-                  width="40"
-                  height="40"
-                  fill="white"
-                  stroke="black"
-                />
-                <circle cx={x} cy="105" r="4" fill="black" />
-                <circle cx={x} cy="115" r="4" fill="black" />
-                <text x={x} y="150" textAnchor="middle" className="text-sm">
-                  როზეტი {i + 1}
-                </text>
-              </g>
-            );
-          })}
-        </svg>
+              {/* როზეტები */}
+              {[...Array(sockets)].map((_, i) => {
+                const x = 150 + i * 120;
+                return (
+                  <g key={`socket-${i}`}>
+                    <rect
+                      x={x - 20}
+                      y="90"
+                      width="40"
+                      height="40"
+                      fill="white"
+                      stroke="black"
+                    />
+                    <circle cx={x} cy="105" r="4" fill="black" />
+                    <circle cx={x} cy="115" r="4" fill="black" />
+                    <text x={x} y="150" textAnchor="middle" className="text-sm">
+                      როზეტი {i + 1}
+                    </text>
+                  </g>
+                );
+              })}
+            </svg>
+          </div>
+        </div>
       </div>
     );
   };
 
   const renderLightCircuit = (room, index) => {
     const lights = parseInt(room.lights);
-    const svgWidth = 800;
+    const svgWidth = calculateSvgWidth(lights);
     const svgHeight = 200;
+    const lastLightX = 150 + (lights - 1) * 120;
 
     return (
       <div>
         <h3 className="text-lg font-medium mb-2">
           {room.roomName}ს განათების ხაზი
         </h3>
-        <svg
-          viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-          className="w-full h-full border rounded"
-        >
-          {/* ავტომატი */}
-          <rect x="50" y="80" width="40" height="60" fill="gray" />
-          <text x="45" y="70" className="text-sm">
-            ავტომატი
-          </text>
+        <div className="overflow-x-auto">
+          <div style={{ minWidth: `${svgWidth}px` }}>
+            <svg
+              viewBox={`0 0 ${svgWidth} ${svgHeight}`}
+              className="w-full h-full border rounded"
+            >
+              {/* ავტომატი */}
+              <rect x="50" y="80" width="40" height="60" fill="gray" />
+              <text x="45" y="70" className="text-sm">
+                ავტომატი
+              </text>
 
-          {/* მთავარი ხაზები */}
-          <line
-            x1="90"
-            y1="90"
-            x2="750"
-            y2="90"
-            stroke="black"
-            strokeWidth="2"
-          />
-          <line
-            x1="90"
-            y1="130"
-            x2="750"
-            y2="130"
-            stroke="black"
-            strokeWidth="2"
-          />
+              {/* ზედა მთავარი ხაზი */}
+              <line
+                x1="90"
+                y1="90"
+                x2={lastLightX + 20}
+                y2="90"
+                stroke="black"
+                strokeWidth="2"
+              />
 
-          {/* ნათურები */}
-          {[...Array(lights)].map((_, i) => {
-            const x = 150 + i * 120;
-            return (
-              <g key={`light-${i}`}>
-                <circle cx={x} cy="90" r="20" fill="yellow" stroke="black" />
-                <line
-                  x1={x}
-                  y1="110"
-                  x2={x}
-                  y2="130"
-                  stroke="black"
-                  strokeWidth="2"
-                />
-                <text x={x} y="150" textAnchor="middle" className="text-sm">
-                  სანათი {i + 1}
-                </text>
-              </g>
-            );
-          })}
-        </svg>
+              {/* ნათურები და მათი ვერტიკალური კაბელები */}
+              {[...Array(lights)].map((_, i) => {
+                const x = 150 + i * 120;
+                return (
+                  <g key={`light-${i}`}>
+                    {/* ნათურა */}
+                    <circle
+                      cx={x}
+                      cy="90"
+                      r="20"
+                      fill="yellow"
+                      stroke="black"
+                    />
+                    {/* ვერტიკალური კაბელი */}
+                    <line
+                      x1={x}
+                      y1="110"
+                      x2={x}
+                      y2="130"
+                      stroke="black"
+                      strokeWidth="2"
+                    />
+                    {/* ნომერი */}
+                    <text x={x} y="150" textAnchor="middle" className="text-sm">
+                      სანათი {i + 1}
+                    </text>
+                    {/* ქვედა კაბელის სეგმენტი მხოლოდ წინა ნათურამდე */}
+                    {i < lights - 1 && (
+                      <line
+                        x1={x}
+                        y1="130"
+                        x2={x + 120}
+                        y2="130"
+                        stroke="black"
+                        strokeWidth="2"
+                      />
+                    )}
+                  </g>
+                );
+              })}
+
+              {/* ქვედა კაბელის საწყისი სეგმენტი ავტომატიდან პირველ ნათურამდე */}
+              <line
+                x1="90"
+                y1="130"
+                x2="150"
+                y2="130"
+                stroke="black"
+                strokeWidth="2"
+              />
+            </svg>
+          </div>
+        </div>
       </div>
     );
   };
