@@ -18,7 +18,13 @@ const CircuitDiagram = () => {
 
   const [devicePowers, setDevicePowers] = useState({});
   const [smartDevices, setSmartDevices] = useState({});
-  const [wireParams, setWireParams] = useState({});
+  // დავამატოთ მთავარი ხაზის default პარამეტრები
+  const [wireParams, setWireParams] = useState({
+    "main-power-wire": {
+      thickness: "5X6",
+      length: "",
+    },
+  });
 
   // სურათების URL-ები
   const images = {
@@ -134,7 +140,7 @@ const CircuitDiagram = () => {
           placeholder="სიგრძე"
           value={wireParams[wireId]?.length || ""}
           onChange={(e) => updateWireParams(wireId, "length", e.target.value)}
-          className="w-16 text-xs p-1 border rounded"
+          className="w-20 text-xs p-1 border rounded"
         />
       </div>
     </foreignObject>
@@ -202,7 +208,7 @@ const CircuitDiagram = () => {
     );
 
     const panelHeight = Math.max(1200, totalHeight + 200);
-    const circuitStartX = 450; // გაზრდილი მანძილი მავთულის პარამეტრების ინფუთებისთვის
+    const circuitStartX = 450;
 
     const maxWidth = Math.max(
       ...rooms.map((room) =>
@@ -235,6 +241,7 @@ const CircuitDiagram = () => {
                 fill="#d1d5db"
                 stroke="black"
               />
+              {/* კარადის სათაური */}
               <text
                 x="150"
                 y="50"
@@ -244,9 +251,45 @@ const CircuitDiagram = () => {
                 მთავარი კარადა
               </text>
 
+              {/* მთავარი ავტომატი და შემომავალი ხაზი */}
+              <g transform="translate(0, 0)">
+                <image
+                  href={images.automat}
+                  x="150"
+                  y="60"
+                  width="100"
+                  height="65"
+                />
+                <text
+                  x="300"
+                  y="75"
+                  textAnchor="middle"
+                  style={{
+                    fontSize: "14px",
+                    fontWeight: "bold",
+                    fill: "black",
+                  }}
+                >
+                  კვება
+                </text>
+
+                {/* შემომავალი ხაზი */}
+                <line
+                  x1="240"
+                  y1="100"
+                  x2="550"
+                  y2="100"
+                  stroke="red"
+                  strokeWidth="3"
+                />
+
+                {/* მავთულის პარამეტრები შემომავალი ხაზისთვის */}
+                {renderWireParams("main-power-wire", 260, 110)}
+              </g>
+
               {/* ოთახების წრედები */}
               {rooms.map((room, index) => {
-                const baseY = 120 + calculatePreviousRoomsHeight(index);
+                const baseY = 180 + calculatePreviousRoomsHeight(index);
                 const standardSockets = parseInt(room.standardSockets || 0);
                 const powerSockets = parseInt(room.powerSockets || 0);
                 const lights = parseInt(room.lights);
