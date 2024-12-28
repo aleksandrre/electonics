@@ -1,39 +1,220 @@
 import React, { useState } from "react";
-import { Lamp, Power, Home, Plus, X } from "lucide-react";
+import { Lamp, Power, Home, Plus, X, Zap } from "lucide-react";
+import standardSocketImage from "../assets/socket.jpg";
+import powerSocketImage from "../assets/socket.jpg";
+import lightImage from "../assets/light.jpg";
+import automatImage from "../assets/automat.jpg";
 
 const CircuitDiagram = () => {
+  const powerOptions = [50, 100, 150, 200, 250, 300];
+
   const [rooms, setRooms] = useState([]);
   const [currentRoom, setCurrentRoom] = useState({
     roomName: "",
-    sockets: "",
+    standardSockets: "",
+    powerSockets: "",
     lights: "",
   });
 
+  const [devicePowers, setDevicePowers] = useState({});
+  const [smartDevices, setSmartDevices] = useState({});
+  const [wireParams, setWireParams] = useState({});
+
+  // სურათების URL-ები
+  const images = {
+    standardSocket: standardSocketImage,
+    powerSocket: powerSocketImage,
+    light: lightImage,
+    automat: automatImage,
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (currentRoom.roomName && currentRoom.sockets && currentRoom.lights) {
-      setRooms([...rooms, currentRoom]);
-      setCurrentRoom({ roomName: "", sockets: "", lights: "" });
+    if (
+      currentRoom.roomName &&
+      (currentRoom.standardSockets || currentRoom.powerSockets) &&
+      currentRoom.lights
+    ) {
+      const roomId = `room-${Date.now()}`;
+
+      const newDevicePowers = {};
+      const newSmartDevices = {};
+      const newWireParams = {};
+
+      // სტანდარტული როზეტები
+      for (let i = 0; i < parseInt(currentRoom.standardSockets || 0); i++) {
+        const socketId = `${roomId}-standard-socket-${i}`;
+        newDevicePowers[socketId] = 100;
+        newSmartDevices[socketId] = false;
+      }
+
+      // მავთულის პარამეტრები სტანდარტული როზეტების წრედისთვის
+      newWireParams[`${roomId}-standard-wire`] = {
+        thickness: "3X1.5",
+        length: "",
+      };
+
+      // მძლავრი როზეტები
+      for (let i = 0; i < parseInt(currentRoom.powerSockets || 0); i++) {
+        const socketId = `${roomId}-power-socket-${i}`;
+        newDevicePowers[socketId] = 100;
+        newSmartDevices[socketId] = false;
+        // მავთულის პარამეტრები თითოეული მძლავრი როზეტის წრედისთვის
+        newWireParams[`${roomId}-power-wire-${i}`] = {
+          thickness: "3X1.5",
+          length: "",
+        };
+      }
+
+      // სანათები
+      for (let i = 0; i < parseInt(currentRoom.lights); i++) {
+        const lightId = `${roomId}-light-${i}`;
+        newDevicePowers[lightId] = 100;
+        newSmartDevices[lightId] = false;
+      }
+
+      // მავთულის პარამეტრები განათების წრედისთვის
+      newWireParams[`${roomId}-light-wire`] = {
+        thickness: "3X1.5",
+        length: "",
+      };
+
+      setDevicePowers((prev) => ({ ...prev, ...newDevicePowers }));
+      setSmartDevices((prev) => ({ ...prev, ...newSmartDevices }));
+      setWireParams((prev) => ({ ...prev, ...newWireParams }));
+
+      setRooms([...rooms, { ...currentRoom, id: roomId }]);
+      setCurrentRoom({
+        roomName: "",
+        standardSockets: "",
+        powerSockets: "",
+        lights: "",
+      });
     }
   };
 
-  const handleDeleteRoom = (index) => {
-    setRooms(rooms.filter((_, i) => i !== index));
+  const updateDevicePower = (deviceId, power) => {
+    setDevicePowers((prev) => ({
+      ...prev,
+      [deviceId]: power,
+    }));
   };
+
+  const toggleSmartDevice = (deviceId) => {
+    setSmartDevices((prev) => ({
+      ...prev,
+      [deviceId]: !prev[deviceId],
+    }));
+  };
+
+  const updateWireParams = (wireId, field, value) => {
+    setWireParams((prev) => ({
+      ...prev,
+      [wireId]: {
+        ...prev[wireId],
+        [field]: value,
+      },
+    }));
+  };
+
+  const renderWireParams = (wireId, x, y) => (
+    <foreignObject x={x} y={y} width="200" height="60">
+      <div xmlns="http://www.w3.org/1999/xhtml" className="flex gap-2">
+        <input
+          type="text"
+          placeholder="3X1.5"
+          value={wireParams[wireId]?.thickness || "3X1.5"}
+          onChange={(e) =>
+            updateWireParams(wireId, "thickness", e.target.value)
+          }
+          className="w-16 text-xs p-1 border rounded"
+        />
+        <input
+          type="number"
+          placeholder="სიგრძე"
+          value={wireParams[wireId]?.length || ""}
+          onChange={(e) => updateWireParams(wireId, "length", e.target.value)}
+          className="w-16 text-xs p-1 border rounded"
+        />
+      </div>
+    </foreignObject>
+  );
 
   const calculateSvgWidth = (elements) => {
     return Math.max(1200, elements * 120 + 500);
   };
 
+  const renderDeviceControls = (deviceId, deviceName, yOffset) => (
+    <foreignObject x="-50" y={yOffset} width="100" height="100">
+      <div
+        xmlns="http://www.w3.org/1999/xhtml"
+        className="text-center bg-white border p-2 rounded-md shadow-sm"
+      >
+        <div className="text-xs font-medium mb-2">{deviceName}</div>
+        <select
+          className="text-xs p-1 w-20 mb-2 border rounded"
+          value={devicePowers[deviceId]}
+          onChange={(e) =>
+            updateDevicePower(deviceId, parseInt(e.target.value))
+          }
+        >
+          {powerOptions.map((power) => (
+            <option key={power} value={power}>
+              {power}W
+            </option>
+          ))}
+        </select>
+        <div className="flex items-center justify-center gap-1">
+          <input
+            type="checkbox"
+            checked={smartDevices[deviceId]}
+            onChange={() => toggleSmartDevice(deviceId)}
+            className="w-3 h-3"
+          />
+          <span className="text-xs">ჭკვიანი</span>
+        </div>
+      </div>
+    </foreignObject>
+  );
+
   const renderMainPanel = () => {
-    const panelHeight = Math.max(600, rooms.length * 250 + 100);
+    const calculateRoomHeight = (room) => {
+      const standardSocketsHeight = 100;
+      const powerSocketSpacing = 140;
+      const powerSocketsHeight =
+        parseInt(room.powerSockets || 0) * powerSocketSpacing;
+      const lightsHeight = 300;
+      const roomPadding = 100;
+      return (
+        standardSocketsHeight + powerSocketsHeight + lightsHeight + roomPadding
+      );
+    };
+
+    const calculatePreviousRoomsHeight = (index) => {
+      return rooms
+        .slice(0, index)
+        .reduce((total, room) => total + calculateRoomHeight(room), 0);
+    };
+
+    const totalHeight = rooms.reduce(
+      (acc, room) => acc + calculateRoomHeight(room),
+      0
+    );
+
+    const panelHeight = Math.max(1200, totalHeight + 200);
+    const circuitStartX = 450; // გაზრდილი მანძილი მავთულის პარამეტრების ინფუთებისთვის
+
     const maxWidth = Math.max(
       ...rooms.map((room) =>
         Math.max(
-          calculateSvgWidth(parseInt(room.sockets)),
+          calculateSvgWidth(
+            parseInt(room.standardSockets || 0) +
+              parseInt(room.powerSockets || 0)
+          ),
           calculateSvgWidth(parseInt(room.lights))
         )
-      )
+      ),
+      1200
     );
 
     return (
@@ -58,183 +239,255 @@ const CircuitDiagram = () => {
                 x="150"
                 y="50"
                 textAnchor="middle"
-                className="text-sm font-bold"
+                style={{ fontSize: "16px", fontWeight: "bold", fill: "black" }}
               >
                 მთავარი კარადა
               </text>
 
               {/* ოთახების წრედები */}
               {rooms.map((room, index) => {
-                const baseY = 120 + index * 250;
-                const sockets = parseInt(room.sockets);
+                const baseY = 120 + calculatePreviousRoomsHeight(index);
+                const standardSockets = parseInt(room.standardSockets || 0);
+                const powerSockets = parseInt(room.powerSockets || 0);
                 const lights = parseInt(room.lights);
-                const circuitStartX = 350;
-                const automatOffset = 70;
+                const automatOffset = 100;
 
                 return (
-                  <g key={`room-${index}`}>
+                  <g key={room.id}>
                     <text
                       x="150"
                       y={baseY - 30}
                       textAnchor="middle"
-                      className="text-sm font-bold"
+                      style={{
+                        fontSize: "16px",
+                        fontWeight: "bold",
+                        fill: "black",
+                      }}
                     >
                       {room.roomName}
                     </text>
 
-                    {/* როზეტების წრედი */}
-                    <g>
-                      {/* კარადის როზეტების ავტომატი */}
-                      <rect
-                        x="100"
-                        y={baseY}
-                        width="60"
-                        height="40"
-                        fill="gray"
-                        stroke="black"
-                      />
-                      <text
-                        x="130"
-                        y={baseY + 25}
-                        textAnchor="middle"
-                        className="text-xs fill-white"
-                      >
-                        როზეტები
-                      </text>
+                    {/* სტანდარტული როზეტების წრედი */}
+                    {standardSockets > 0 && (
+                      <g>
+                        <image
+                          href={images.automat}
+                          x="100"
+                          y={baseY}
+                          width="60"
+                          height="40"
+                        />
+                        <text
+                          x="130"
+                          y={baseY - 10}
+                          textAnchor="middle"
+                          style={{
+                            fontSize: "16px",
+                            fontWeight: "bold",
+                            fill: "black",
+                          }}
+                        >
+                          სტ.როზეტები
+                        </text>
 
-                      {/* კარადიდან პირდაპირ გამომავალი ხაზი */}
-                      <line
-                        x1="160"
-                        y1={baseY + 20}
-                        x2={circuitStartX}
-                        y2={baseY + 20}
-                        stroke="black"
-                        strokeWidth="2"
-                      />
+                        <line
+                          x1="160"
+                          y1={baseY + 20}
+                          x2={circuitStartX}
+                          y2={baseY + 20}
+                          stroke="black"
+                          strokeWidth="2"
+                        />
+                        {renderWireParams(
+                          `${room.id}-standard-wire`,
+                          250,
+                          baseY + 30
+                        )}
+                        <line
+                          x1={circuitStartX}
+                          y1={baseY + 20}
+                          x2={circuitStartX + (standardSockets - 1) * 120 + 20}
+                          y2={baseY + 20}
+                          stroke="black"
+                          strokeWidth="2"
+                        />
 
-                      {/* როზეტების ძირითადი ხაზები */}
-                      <line
-                        x1={circuitStartX}
-                        y1={baseY + 20}
-                        x2={circuitStartX + (sockets - 1) * 120 + 20}
-                        y2={baseY + 20}
-                        stroke="black"
-                        strokeWidth="2"
-                      />
-                      <line
-                        x1={circuitStartX}
-                        y1={baseY + 60}
-                        x2={circuitStartX + (sockets - 1) * 120 + 20}
-                        y2={baseY + 60}
-                        stroke="black"
-                        strokeWidth="2"
-                      />
+                        {[...Array(standardSockets)].map((_, i) => {
+                          const x = circuitStartX + i * 120;
+                          const socketId = `${room.id}-standard-socket-${i}`;
+                          return (
+                            <g
+                              key={socketId}
+                              transform={`translate(${x}, ${baseY})`}
+                            >
+                              <image
+                                href={images.standardSocket}
+                                x="-20"
+                                y="0"
+                                width="40"
+                                height="40"
+                              />
+                              {smartDevices[socketId] && (
+                                <rect
+                                  x="-5"
+                                  y="-5"
+                                  width="10"
+                                  height="10"
+                                  fill="green"
+                                />
+                              )}
+                              {renderDeviceControls(
+                                socketId,
+                                `როზეტი ${i + 1}`,
+                                45
+                              )}
+                            </g>
+                          );
+                        })}
+                      </g>
+                    )}
 
-                      {/* როზეტები */}
-                      {[...Array(sockets)].map((_, i) => {
-                        const x = circuitStartX + i * 120;
-                        return (
-                          <g key={`socket-${i}`}>
-                            <rect
-                              x={x - 20}
-                              y={baseY + 20}
+                    {/* მძლავრი როზეტების წრედები */}
+                    {[...Array(powerSockets)].map((_, i) => {
+                      const y = baseY + 180 + i * 140;
+                      const socketId = `${room.id}-power-socket-${i}`;
+                      return (
+                        <g key={socketId}>
+                          <image
+                            href={images.automat}
+                            x="100"
+                            y={y}
+                            width="60"
+                            height="40"
+                          />
+                          <text
+                            x="130"
+                            y={y - 10}
+                            textAnchor="middle"
+                            style={{
+                              fontSize: "16px",
+                              fontWeight: "bold",
+                              fill: "black",
+                            }}
+                          >
+                            მძლ.როზეტი {i + 1}
+                          </text>
+
+                          <line
+                            x1="160"
+                            y1={y + 20}
+                            x2={circuitStartX}
+                            y2={y + 20}
+                            stroke="black"
+                            strokeWidth="2"
+                          />
+                          {renderWireParams(
+                            `${room.id}-power-wire-${i}`,
+                            250,
+                            y + 30
+                          )}
+
+                          <g transform={`translate(${circuitStartX}, ${y})`}>
+                            <image
+                              href={images.powerSocket}
+                              x="-20"
+                              y="0"
                               width="40"
                               height="40"
-                              fill="white"
-                              stroke="black"
                             />
-                            <circle cx={x} cy={baseY + 35} r="4" fill="black" />
-                            <circle cx={x} cy={baseY + 45} r="4" fill="black" />
-                            <text
-                              x={x}
-                              y={baseY + 80}
-                              textAnchor="middle"
-                              className="text-xs"
-                            >
-                              როზეტი {i + 1}
-                            </text>
+                            {smartDevices[socketId] && (
+                              <rect
+                                x="-5"
+                                y="-5"
+                                width="10"
+                                height="10"
+                                fill="green"
+                              />
+                            )}
+                            {renderDeviceControls(
+                              socketId,
+                              `მძლავრი ${i + 1}`,
+                              45
+                            )}
                           </g>
-                        );
-                      })}
-                    </g>
+                        </g>
+                      );
+                    })}
 
                     {/* განათების წრედი */}
                     <g>
-                      {/* კარადის განათების ავტომატი */}
-                      <rect
+                      <image
+                        href={images.automat}
                         x="100"
-                        y={baseY + automatOffset}
+                        y={baseY + automatOffset + powerSockets * 140 + 200}
                         width="60"
                         height="40"
-                        fill="gray"
-                        stroke="black"
                       />
                       <text
                         x="130"
-                        y={baseY + automatOffset + 25}
+                        y={baseY + automatOffset + powerSockets * 140 + 190}
                         textAnchor="middle"
-                        className="text-xs fill-white"
+                        style={{
+                          fontSize: "16px",
+                          fontWeight: "bold",
+                          fill: "black",
+                        }}
                       >
                         განათება
                       </text>
 
-                      {/* კარადიდან პირდაპირ გამომავალი ხაზი */}
                       <line
                         x1="160"
-                        y1={baseY + automatOffset + 20}
+                        y1={baseY + automatOffset + powerSockets * 140 + 220}
                         x2={circuitStartX}
-                        y2={baseY + 120}
-                        stroke="black"
+                        y2={baseY + automatOffset + powerSockets * 140 + 220}
+                        stroke="red"
                         strokeWidth="2"
                       />
-
-                      {/* განათების ძირითადი ხაზი */}
+                      {renderWireParams(
+                        `${room.id}-light-wire`,
+                        250,
+                        baseY + automatOffset + powerSockets * 140 + 230
+                      )}
                       <line
                         x1={circuitStartX}
-                        y1={baseY + 120}
+                        y1={baseY + automatOffset + powerSockets * 140 + 220}
                         x2={circuitStartX + (lights - 1) * 120 + 20}
-                        y2={baseY + 120}
-                        stroke="black"
+                        y2={baseY + automatOffset + powerSockets * 140 + 220}
+                        stroke="blue"
                         strokeWidth="2"
                       />
 
-                      {/* ნათურები */}
                       {[...Array(lights)].map((_, i) => {
                         const x = circuitStartX + i * 120;
+                        const lightId = `${room.id}-light-${i}`;
                         return (
-                          <g key={`light-${i}`}>
-                            <circle
-                              cx={x}
-                              cy={baseY + 120}
-                              r="20"
-                              fill="yellow"
-                              stroke="black"
+                          <g
+                            key={lightId}
+                            transform={`translate(${x}, ${
+                              baseY + automatOffset + powerSockets * 140 + 220
+                            })`}
+                          >
+                            <image
+                              href={images.light}
+                              x="-20"
+                              y="-20"
+                              width="40"
+                              height="40"
                             />
-                            <line
-                              x1={x}
-                              y1={baseY + 140}
-                              x2={x}
-                              y2={baseY + 160}
-                              stroke="black"
-                              strokeWidth="2"
-                            />
-                            <text
-                              x={x}
-                              y={baseY + 180}
-                              textAnchor="middle"
-                              className="text-xs"
-                            >
-                              სანათი {i + 1}
-                            </text>
-                            {i < lights - 1 && (
-                              <line
-                                x1={x}
-                                y1={baseY + 160}
-                                x2={x + 120}
-                                y2={baseY + 160}
-                                stroke="black"
-                                strokeWidth="2"
+                            {smartDevices[lightId] && (
+                              <rect
+                                x="-5"
+                                y="-25"
+                                width="10"
+                                height="10"
+                                fill="green"
                               />
+                            )}
+                            {renderDeviceControls(
+                              lightId,
+                              `სანათი ${i + 1}`,
+                              25
                             )}
                           </g>
                         );
@@ -258,7 +511,7 @@ const CircuitDiagram = () => {
             ელექტრო სქემის დაგეგმარება
           </h2>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-4 gap-4">
               <div className="relative">
                 <Home
                   className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
@@ -281,11 +534,32 @@ const CircuitDiagram = () => {
                 />
                 <input
                   type="number"
-                  placeholder="როზეტების რაოდენობა"
+                  placeholder="სტანდარტული როზეტები"
                   className="pl-10 p-2 border rounded w-full"
-                  value={currentRoom.sockets}
+                  value={currentRoom.standardSockets}
                   onChange={(e) =>
-                    setCurrentRoom({ ...currentRoom, sockets: e.target.value })
+                    setCurrentRoom({
+                      ...currentRoom,
+                      standardSockets: e.target.value,
+                    })
+                  }
+                />
+              </div>
+              <div className="relative">
+                <Zap
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                  size={20}
+                />
+                <input
+                  type="number"
+                  placeholder="მძლავრი როზეტები"
+                  className="pl-10 p-2 border rounded w-full"
+                  value={currentRoom.powerSockets}
+                  onChange={(e) =>
+                    setCurrentRoom({
+                      ...currentRoom,
+                      powerSockets: e.target.value,
+                    })
                   }
                 />
               </div>
