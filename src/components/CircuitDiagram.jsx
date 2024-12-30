@@ -7,6 +7,7 @@ import automatImage from "../assets/automat.jpg";
 
 const CircuitDiagram = () => {
   const powerOptions = [50, 100, 150, 200, 250, 300];
+  const wireThicknessOptions = ["3X1.5", "3X2.5", "3X4", "3X6", "5X6"];
 
   const [rooms, setRooms] = useState([]);
   const [currentRoom, setCurrentRoom] = useState({
@@ -18,15 +19,13 @@ const CircuitDiagram = () => {
 
   const [devicePowers, setDevicePowers] = useState({});
   const [smartDevices, setSmartDevices] = useState({});
-  // დავამატოთ მთავარი ხაზის default პარამეტრები
   const [wireParams, setWireParams] = useState({
     "main-power-wire": {
       thickness: "5X6",
-      length: "",
+      length: "15",
     },
   });
 
-  // სურათების URL-ები
   const images = {
     standardSocket: standardSocketImage,
     powerSocket: powerSocketImage,
@@ -56,8 +55,8 @@ const CircuitDiagram = () => {
 
       // მავთულის პარამეტრები სტანდარტული როზეტების წრედისთვის
       newWireParams[`${roomId}-standard-wire`] = {
-        thickness: "3X1.5",
-        length: "",
+        thickness: "3X2.5",
+        length: "15",
       };
 
       // მძლავრი როზეტები
@@ -67,8 +66,8 @@ const CircuitDiagram = () => {
         newSmartDevices[socketId] = false;
         // მავთულის პარამეტრები თითოეული მძლავრი როზეტის წრედისთვის
         newWireParams[`${roomId}-power-wire-${i}`] = {
-          thickness: "3X1.5",
-          length: "",
+          thickness: "3X2.5",
+          length: "15",
         };
       }
 
@@ -82,7 +81,7 @@ const CircuitDiagram = () => {
       // მავთულის პარამეტრები განათების წრედისთვის
       newWireParams[`${roomId}-light-wire`] = {
         thickness: "3X1.5",
-        length: "",
+        length: "15",
       };
 
       setDevicePowers((prev) => ({ ...prev, ...newDevicePowers }));
@@ -124,28 +123,34 @@ const CircuitDiagram = () => {
   };
 
   const renderWireParams = (wireId, x, y) => (
-    <foreignObject x={x} y={y} width="200" height="60">
+    <foreignObject x={x} y={y} width="140" height="60">
       <div xmlns="http://www.w3.org/1999/xhtml" className="flex gap-2">
-        <input
-          type="text"
-          placeholder="3X1.5"
+        <select
           value={wireParams[wireId]?.thickness || "3X1.5"}
           onChange={(e) =>
             updateWireParams(wireId, "thickness", e.target.value)
           }
-          className="w-16 text-xs p-1 border rounded"
-        />
+          className="w-20 text-xs p-1 border rounded"
+        >
+          {wireThicknessOptions.map((thickness) => (
+            <option key={thickness} value={thickness}>
+              {thickness}
+            </option>
+          ))}
+        </select>
         <input
           type="number"
           placeholder="სიგრძე"
-          value={wireParams[wireId]?.length || ""}
+          value={wireParams[wireId]?.length || "15"}
           onChange={(e) => updateWireParams(wireId, "length", e.target.value)}
-          className="w-20 text-xs p-1 border rounded"
+          className="w-12 text-xs p-1 border rounded"
         />
+        <span className="text-xs flex items-center">მ</span>
       </div>
     </foreignObject>
   );
 
+  // დანარჩენი კოდი უცვლელია...
   const calculateSvgWidth = (elements) => {
     return Math.max(1200, elements * 120 + 500);
   };
@@ -184,6 +189,8 @@ const CircuitDiagram = () => {
   );
 
   const renderMainPanel = () => {
+    // დანარჩენი კოდი უცვლელია...
+    // (renderMainPanel ფუნქციის მთლიანი კოდი დატოვეთ უცვლელად)
     const calculateRoomHeight = (room) => {
       const standardSocketsHeight = 100;
       const powerSocketSpacing = 140;
