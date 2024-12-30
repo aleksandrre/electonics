@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { Lamp, Power, Home, Plus, X, Zap } from "lucide-react";
 import standardSocketImage from "../assets/socket.jpg";
-import powerSocketImage from "../assets/socket.jpg";
 import lightImage from "../assets/light.jpg";
 import automatImage from "../assets/automat.jpg";
+import automatOrdinaryImage from "../assets/automatOrdinary.jpg";
 
 const CircuitDiagram = () => {
   const powerOptions = [50, 100, 150, 200, 250, 300];
@@ -28,9 +28,10 @@ const CircuitDiagram = () => {
 
   const images = {
     standardSocket: standardSocketImage,
-    powerSocket: powerSocketImage,
+
     light: lightImage,
     automat: automatImage,
+    automatOrdinary: automatOrdinaryImage,
   };
 
   const handleSubmit = (e) => {
@@ -123,7 +124,7 @@ const CircuitDiagram = () => {
   };
 
   const renderWireParams = (wireId, x, y) => (
-    <foreignObject x={x} y={y} width="140" height="60">
+    <foreignObject x={x} y={y} width="200" height="60">
       <div xmlns="http://www.w3.org/1999/xhtml" className="flex gap-2">
         <select
           value={wireParams[wireId]?.thickness || "3X1.5"}
@@ -150,7 +151,6 @@ const CircuitDiagram = () => {
     </foreignObject>
   );
 
-  // დანარჩენი კოდი უცვლელია...
   const calculateSvgWidth = (elements) => {
     return Math.max(1200, elements * 120 + 500);
   };
@@ -189,15 +189,13 @@ const CircuitDiagram = () => {
   );
 
   const renderMainPanel = () => {
-    // დანარჩენი კოდი უცვლელია...
-    // (renderMainPanel ფუნქციის მთლიანი კოდი დატოვეთ უცვლელად)
     const calculateRoomHeight = (room) => {
-      const standardSocketsHeight = 100;
-      const powerSocketSpacing = 140;
+      const standardSocketsHeight = 120;
+      const powerSocketSpacing = 160;
       const powerSocketsHeight =
         parseInt(room.powerSockets || 0) * powerSocketSpacing;
-      const lightsHeight = 300;
-      const roomPadding = 100;
+      const lightsHeight = 320;
+      const roomPadding = 120;
       return (
         standardSocketsHeight + powerSocketsHeight + lightsHeight + roomPadding
       );
@@ -215,7 +213,7 @@ const CircuitDiagram = () => {
     );
 
     const panelHeight = Math.max(1200, totalHeight + 200);
-    const circuitStartX = 450;
+    const circuitStartX = 550;
 
     const maxWidth = Math.max(
       ...rooms.map((room) =>
@@ -231,8 +229,10 @@ const CircuitDiagram = () => {
     );
 
     return (
-      <div className="mb-10">
-        <h3 className="text-lg font-medium mb-2">ელექტრო სქემა</h3>
+      <div className="mb-10 text-center">
+        <h3 className="text-lg font-medium mb-2 read-the-docs">
+          ელექტრო სქემა
+        </h3>
         <div className="overflow-x-auto">
           <div style={{ minWidth: `${maxWidth}px` }}>
             <svg
@@ -241,17 +241,18 @@ const CircuitDiagram = () => {
             >
               {/* კარადის კორპუსი */}
               <rect
-                x="50"
+                x="150"
                 y="20"
                 width="200"
                 height={panelHeight - 40}
                 fill="#d1d5db"
                 stroke="black"
               />
+
               {/* კარადის სათაური */}
               <text
-                x="150"
-                y="50"
+                x="250"
+                y="45"
                 textAnchor="middle"
                 style={{ fontSize: "16px", fontWeight: "bold", fill: "black" }}
               >
@@ -262,14 +263,14 @@ const CircuitDiagram = () => {
               <g transform="translate(0, 0)">
                 <image
                   href={images.automat}
-                  x="150"
-                  y="60"
-                  width="100"
-                  height="65"
+                  x="220"
+                  y="100"
+                  width="60"
+                  height="40"
                 />
                 <text
-                  x="300"
-                  y="75"
+                  x="250"
+                  y="85"
                   textAnchor="middle"
                   style={{
                     fontSize: "14px",
@@ -282,21 +283,21 @@ const CircuitDiagram = () => {
 
                 {/* შემომავალი ხაზი */}
                 <line
-                  x1="240"
-                  y1="100"
-                  x2="550"
-                  y2="100"
+                  x1="280"
+                  y1="122"
+                  x2={circuitStartX}
+                  y2="122"
                   stroke="red"
-                  strokeWidth="3"
+                  strokeWidth="2"
                 />
 
                 {/* მავთულის პარამეტრები შემომავალი ხაზისთვის */}
-                {renderWireParams("main-power-wire", 260, 110)}
+                {renderWireParams("main-power-wire", 355, 90)}
               </g>
 
               {/* ოთახების წრედები */}
               {rooms.map((room, index) => {
-                const baseY = 180 + calculatePreviousRoomsHeight(index);
+                const baseY = 280 + calculatePreviousRoomsHeight(index);
                 const standardSockets = parseInt(room.standardSockets || 0);
                 const powerSockets = parseInt(room.powerSockets || 0);
                 const lights = parseInt(room.lights);
@@ -304,9 +305,10 @@ const CircuitDiagram = () => {
 
                 return (
                   <g key={room.id}>
+                    {/* ოთახის სახელი */}
                     <text
-                      x="150"
-                      y={baseY - 30}
+                      x="250"
+                      y={baseY - 50}
                       textAnchor="middle"
                       style={{
                         fontSize: "16px",
@@ -321,14 +323,14 @@ const CircuitDiagram = () => {
                     {standardSockets > 0 && (
                       <g>
                         <image
-                          href={images.automat}
-                          x="100"
+                          href={images.automatOrdinary}
+                          x="220"
                           y={baseY}
                           width="60"
                           height="40"
                         />
                         <text
-                          x="130"
+                          x="250"
                           y={baseY - 10}
                           textAnchor="middle"
                           style={{
@@ -341,7 +343,7 @@ const CircuitDiagram = () => {
                         </text>
 
                         <line
-                          x1="160"
+                          x1="280"
                           y1={baseY + 20}
                           x2={circuitStartX}
                           y2={baseY + 20}
@@ -350,8 +352,8 @@ const CircuitDiagram = () => {
                         />
                         {renderWireParams(
                           `${room.id}-standard-wire`,
-                          250,
-                          baseY + 30
+                          355,
+                          baseY - 10
                         )}
                         <line
                           x1={circuitStartX}
@@ -399,19 +401,19 @@ const CircuitDiagram = () => {
 
                     {/* მძლავრი როზეტების წრედები */}
                     {[...Array(powerSockets)].map((_, i) => {
-                      const y = baseY + 180 + i * 140;
+                      const y = baseY + 180 + i * 160;
                       const socketId = `${room.id}-power-socket-${i}`;
                       return (
                         <g key={socketId}>
                           <image
-                            href={images.automat}
-                            x="100"
+                            href={images.automatOrdinary}
+                            x="220"
                             y={y}
                             width="60"
                             height="40"
                           />
                           <text
-                            x="130"
+                            x="250"
                             y={y - 10}
                             textAnchor="middle"
                             style={{
@@ -422,9 +424,8 @@ const CircuitDiagram = () => {
                           >
                             მძლ.როზეტი {i + 1}
                           </text>
-
                           <line
-                            x1="160"
+                            x1="280"
                             y1={y + 20}
                             x2={circuitStartX}
                             y2={y + 20}
@@ -433,13 +434,13 @@ const CircuitDiagram = () => {
                           />
                           {renderWireParams(
                             `${room.id}-power-wire-${i}`,
-                            250,
-                            y + 30
+                            355,
+                            y - 10
                           )}
 
                           <g transform={`translate(${circuitStartX}, ${y})`}>
                             <image
-                              href={images.powerSocket}
+                              href={images.standardSocket}
                               x="-20"
                               y="0"
                               width="40"
@@ -467,15 +468,15 @@ const CircuitDiagram = () => {
                     {/* განათების წრედი */}
                     <g>
                       <image
-                        href={images.automat}
-                        x="100"
-                        y={baseY + automatOffset + powerSockets * 140 + 200}
+                        href={images.automatOrdinary}
+                        x="220"
+                        y={baseY + automatOffset + powerSockets * 160 + 200}
                         width="60"
                         height="40"
                       />
                       <text
-                        x="130"
-                        y={baseY + automatOffset + powerSockets * 140 + 190}
+                        x="250"
+                        y={baseY + automatOffset + powerSockets * 160 + 190}
                         textAnchor="middle"
                         style={{
                           fontSize: "16px",
@@ -487,23 +488,23 @@ const CircuitDiagram = () => {
                       </text>
 
                       <line
-                        x1="160"
-                        y1={baseY + automatOffset + powerSockets * 140 + 220}
+                        x1="280"
+                        y1={baseY + automatOffset + powerSockets * 160 + 220}
                         x2={circuitStartX}
-                        y2={baseY + automatOffset + powerSockets * 140 + 220}
+                        y2={baseY + automatOffset + powerSockets * 160 + 220}
                         stroke="red"
                         strokeWidth="2"
                       />
                       {renderWireParams(
                         `${room.id}-light-wire`,
-                        250,
-                        baseY + automatOffset + powerSockets * 140 + 230
+                        355,
+                        baseY + automatOffset + powerSockets * 160 + 190
                       )}
                       <line
                         x1={circuitStartX}
-                        y1={baseY + automatOffset + powerSockets * 140 + 220}
+                        y1={baseY + automatOffset + powerSockets * 160 + 220}
                         x2={circuitStartX + (lights - 1) * 120 + 20}
-                        y2={baseY + automatOffset + powerSockets * 140 + 220}
+                        y2={baseY + automatOffset + powerSockets * 160 + 220}
                         stroke="blue"
                         strokeWidth="2"
                       />
@@ -515,7 +516,7 @@ const CircuitDiagram = () => {
                           <g
                             key={lightId}
                             transform={`translate(${x}, ${
-                              baseY + automatOffset + powerSockets * 140 + 220
+                              baseY + automatOffset + powerSockets * 160 + 220
                             })`}
                           >
                             <image
@@ -557,7 +558,7 @@ const CircuitDiagram = () => {
     <div className="bg-gray-100 min-h-screen py-8 px-4">
       <div className="max-w-6xl mx-auto">
         <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <h2 className="text-2xl font-bold mb-6">
+          <h2 className="text-2xl font-bold text-center mb-6">
             ელექტრო სქემის დაგეგმარება
           </h2>
           <form onSubmit={handleSubmit} className="space-y-4">
