@@ -40,7 +40,7 @@ const TableCell = ({ children, className = "" }) => (
 
 const ManufacturerSelect = ({ value, onChange, type = "COMPONENTS" }) => (
   <select
-    className="w-full text-xs border border-gray-300 rounded px-1 py-0.5"
+    className="w-full text-xs   border-gray-300 rounded px-1 py-0.5"
     value={value}
     onChange={(e) => onChange(e.target.value)}
   >
@@ -139,7 +139,7 @@ export const PriceCalculatorModal = ({
           <div className="divide-y divide-red-500 divide-dashed">
             {/* კომპონენტები */}
             <div className="pb-4">
-              <div className="grid grid-cols-5 gap-4 mb-2 text-center">
+              <div className="grid grid-cols-5 gap-4 mb-2 font-bold text-center divide-x divide-dashed divide-red-300 border-red-500 border-solid">
                 <TableHeader>კომპონენტები:</TableHeader>
                 <TableHeader>მწარმოებელი</TableHeader>
                 <TableHeader>რაოდენობა</TableHeader>
@@ -148,7 +148,7 @@ export const PriceCalculatorModal = ({
               </div>
 
               <div className="space-y-2">
-                <div className="grid grid-cols-5 gap-4 text-center">
+                <div className="grid grid-cols-5 gap-4 text-center items-center divide-x divide-dashed divide-red-300 border-red-500 border-solid">
                   <TableCell>სტანდარტული როზეტი</TableCell>
                   <TableCell>
                     <ManufacturerSelect
@@ -166,7 +166,7 @@ export const PriceCalculatorModal = ({
                   <TableCell>{totals.standardSocketsTotal} ₾</TableCell>
                 </div>
 
-                <div className="grid grid-cols-5 gap-4 text-center">
+                <div className="grid grid-cols-5 gap-4 text-center items-center divide-x divide-dashed divide-red-300 border-red-500 border-solid">
                   <TableCell>მძლავრი როზეტი</TableCell>
                   <TableCell>
                     <ManufacturerSelect
@@ -184,7 +184,7 @@ export const PriceCalculatorModal = ({
                   <TableCell>{totals.powerSocketsTotal} ₾</TableCell>
                 </div>
 
-                <div className="grid grid-cols-5 gap-4 text-center">
+                <div className="grid grid-cols-5 gap-4 text-center items-center divide-x divide-dashed divide-red-300 border-solid">
                   <TableCell>სანათის ჩამრთველი</TableCell>
                   <TableCell>
                     <ManufacturerSelect
@@ -206,7 +206,7 @@ export const PriceCalculatorModal = ({
 
             {/* სადენები */}
             <div className="py-4">
-              <div className="grid grid-cols-5 gap-4 mb-2 text-center">
+              <div className="grid grid-cols-5 gap-4 mb-2 font-bold text-center divide-x divide-dashed divide-red-300">
                 <TableHeader>სადენები:</TableHeader>
                 <TableHeader>მწარმოებელი</TableHeader>
                 <TableHeader>სიგრძე (მ)</TableHeader>
@@ -219,7 +219,7 @@ export const PriceCalculatorModal = ({
                   ([type, length]) => (
                     <div
                       key={type}
-                      className="grid grid-cols-5 gap-4 text-center"
+                      className="grid grid-cols-5 gap-4 text-center divide-x divide-dashed divide-red-300"
                     >
                       <TableCell>{type}</TableCell>
                       <TableCell>
@@ -252,7 +252,7 @@ export const PriceCalculatorModal = ({
 
             {/* დამატებითი */}
             <div className="pt-4">
-              <div className="grid grid-cols-5 gap-4 mb-2 text-center">
+              <div className="grid grid-cols-5 gap-4 mb-2 font-bold text-center divide-x divide-dashed divide-red-300">
                 <TableHeader>დამატებითი:</TableHeader>
                 <TableHeader>მწარმოებელი</TableHeader>
                 <TableHeader>რაოდენობა</TableHeader>
@@ -261,7 +261,7 @@ export const PriceCalculatorModal = ({
               </div>
 
               <div className="space-y-2">
-                <div className="grid grid-cols-5 gap-4 text-center">
+                <div className="grid grid-cols-5 gap-4 text-center divide-x divide-dashed divide-red-300">
                   <TableCell>მთავარი კარადა</TableCell>
                   <TableCell>{PRICES.cabinet.manufacturer}</TableCell>
                   <TableCell>1</TableCell>
@@ -269,7 +269,7 @@ export const PriceCalculatorModal = ({
                   <TableCell>{PRICES.cabinet.price} ₾</TableCell>
                 </div>
 
-                <div className="grid grid-cols-5 gap-4 text-center">
+                <div className="grid grid-cols-5 gap-4 text-center divide-x divide-dashed divide-red-300">
                   <TableCell>კარადის აწყობა</TableCell>
                   <TableCell>-</TableCell>
                   <TableCell>1</TableCell>
@@ -281,7 +281,7 @@ export const PriceCalculatorModal = ({
 
             {/* ჯამი */}
             <div className="pt-4 mt-4">
-              <div className="flex justify-between items-center">
+              <div className="flex justify-end gap-2 items-center">
                 <span className="font-medium">ჯამი:</span>
                 <span className="font-medium">
                   {totals.subtotal.toFixed(2)} ₾
