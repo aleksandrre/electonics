@@ -1,26 +1,71 @@
+// App/components/CircuitDiagram/constants.js
+export const MANUFACTURERS = {
+  COMPONENTS: [
+    "Schneider-electric",
+    "ABB",
+    "Legrand",
+    "Siemens",
+    "Hager",
+    "IEK",
+  ],
+  CABLES: ["საქკაბელი", "LAPP", "Erse Kablo"],
+};
+
+export const PRICES = {
+  standardSocket: { price: 12 },
+  powerSocket: { price: 15 },
+  light: { price: 25 },
+  cabinet: { price: 300, manufacturer: "Schneider-electric" },
+  cabinetAssembly: { price: 200 },
+  wireTypes: {
+    "3X1.5": { price: 2.5 },
+    "3X2.5": { price: 3.5 },
+    "3X4": { price: 4.5 },
+    "3X6": { price: 6.0 },
+    "5X6": { price: 8.0 },
+  },
+};
+
+// App/components/PriceCalculatorModal.jsx
 import React, { useState } from "react";
-import { Lamp, Power, Home, Plus, X, Zap } from "lucide-react";
-import standardSocketImage from "../assets/socket.png";
-import lightImage from "../assets/light.png";
-import automatImage from "../assets/automat.png";
-import automatOrdinaryImage from "../assets/automatOrdinary.png";
-const PriceCalculatorModal = ({ isOpen, onClose, rooms, wireParams }) => {
+import { X } from "lucide-react";
+
+const TableHeader = ({ children }) => (
+  <div className="text-xs text-red-500">{children}</div>
+);
+
+const TableCell = ({ children, className = "" }) => (
+  <div className={`text-xs ${className}`}>{children}</div>
+);
+
+const ManufacturerSelect = ({ value, onChange, type = "COMPONENTS" }) => (
+  <select
+    className="w-full text-xs border border-gray-300 rounded px-1 py-0.5"
+    value={value}
+    onChange={(e) => onChange(e.target.value)}
+  >
+    {MANUFACTURERS[type].map((m) => (
+      <option key={m} value={m}>
+        {m}
+      </option>
+    ))}
+  </select>
+);
+
+export const PriceCalculatorModal = ({
+  isOpen,
+  onClose,
+  rooms,
+  wireParams,
+}) => {
   if (!isOpen) return null;
 
-  const prices = {
-    standardSocket: 12,
-    powerSocket: 15,
-    light: 25,
-    cabinet: 300,
-    cabinetAssembly: 200,
-    wireTypes: {
-      "3X1.5": 2.5,
-      "3X2.5": 3.5,
-      "3X4": 4.5,
-      "3X6": 6.0,
-      "5X6": 8.0,
-    },
-  };
+  const [manufacturers, setManufacturers] = useState({
+    standardSocket: MANUFACTURERS.COMPONENTS[0],
+    powerSocket: MANUFACTURERS.COMPONENTS[0],
+    light: MANUFACTURERS.COMPONENTS[0],
+    wires: {},
+  });
 
   const calculateTotals = () => {
     let standardSocketsCount = 0;
@@ -34,29 +79,30 @@ const PriceCalculatorModal = ({ isOpen, onClose, rooms, wireParams }) => {
       lightsCount += parseInt(room.lights || 0);
     });
 
-    // Calculate wire lengths by type
     Object.entries(wireParams).forEach(([wireId, params]) => {
       const { thickness, length } = params;
       wireLengthsByType[thickness] =
         (wireLengthsByType[thickness] || 0) + parseFloat(length);
+
+      if (!manufacturers.wires[thickness]) {
+        setManufacturers((prev) => ({
+          ...prev,
+          wires: {
+            ...prev.wires,
+            [thickness]: MANUFACTURERS.CABLES[0],
+          },
+        }));
+      }
     });
 
-    const standardSocketsTotal = standardSocketsCount * prices.standardSocket;
-    const powerSocketsTotal = powerSocketsCount * prices.powerSocket;
-    const lightsTotal = lightsCount * prices.light;
-
+    const standardSocketsTotal =
+      standardSocketsCount * PRICES.standardSocket.price;
+    const powerSocketsTotal = powerSocketsCount * PRICES.powerSocket.price;
+    const lightsTotal = lightsCount * PRICES.light.price;
     const wiringTotal = Object.entries(wireLengthsByType).reduce(
-      (total, [type, length]) => total + length * prices.wireTypes[type],
+      (total, [type, length]) => total + length * PRICES.wireTypes[type].price,
       0
     );
-
-    const subtotal =
-      standardSocketsTotal +
-      powerSocketsTotal +
-      lightsTotal +
-      wiringTotal +
-      prices.cabinet +
-      prices.cabinetAssembly;
 
     return {
       standardSocketsCount,
@@ -67,7 +113,13 @@ const PriceCalculatorModal = ({ isOpen, onClose, rooms, wireParams }) => {
       powerSocketsTotal,
       lightsTotal,
       wiringTotal,
-      subtotal,
+      subtotal:
+        standardSocketsTotal +
+        powerSocketsTotal +
+        lightsTotal +
+        wiringTotal +
+        PRICES.cabinet.price +
+        PRICES.cabinetAssembly.price,
     };
   };
 
@@ -78,73 +130,177 @@ const PriceCalculatorModal = ({ isOpen, onClose, rooms, wireParams }) => {
       <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl">
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold">ფასების კალკულაცია</h2>
-            <button
-              onClick={onClose}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              <X size={24} />
+            <h2 className="text-xl font-medium">ფასების კალკულაცია</h2>
+            <button onClick={onClose}>
+              <X size={16} className="text-gray-500" />
             </button>
           </div>
 
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
-              <div className="col-span-2 font-medium text-lg border-b pb-2">
-                კომპონენტები:
+          <div className="divide-y divide-red-500 divide-dashed">
+            {/* კომპონენტები */}
+            <div className="pb-4">
+              <div className="grid grid-cols-5 gap-4 mb-2">
+                <TableHeader>კომპონენტები:</TableHeader>
+                <TableHeader>მწარმოებელი</TableHeader>
+                <TableHeader>რაოდენობა</TableHeader>
+                <TableHeader>ერთ. ფასი</TableHeader>
+                <TableHeader>ჯამი</TableHeader>
               </div>
 
-              <div>სტანდარტული როზეტი ({totals.standardSocketsCount} ცალი)</div>
-              <div className="text-right">{totals.standardSocketsTotal} ₾</div>
+              <div className="space-y-2">
+                <div className="grid grid-cols-5 gap-4">
+                  <TableCell>სტანდარტული როზეტი</TableCell>
+                  <TableCell>
+                    <ManufacturerSelect
+                      value={manufacturers.standardSocket}
+                      onChange={(value) =>
+                        setManufacturers((prev) => ({
+                          ...prev,
+                          standardSocket: value,
+                        }))
+                      }
+                    />
+                  </TableCell>
+                  <TableCell>{totals.standardSocketsCount}</TableCell>
+                  <TableCell>{PRICES.standardSocket.price} ₾</TableCell>
+                  <TableCell>{totals.standardSocketsTotal} ₾</TableCell>
+                </div>
 
-              <div>მძლავრი როზეტი ({totals.powerSocketsCount} ცალი)</div>
-              <div className="text-right">{totals.powerSocketsTotal} ₾</div>
+                <div className="grid grid-cols-5 gap-4">
+                  <TableCell>მძლავრი როზეტი</TableCell>
+                  <TableCell>
+                    <ManufacturerSelect
+                      value={manufacturers.powerSocket}
+                      onChange={(value) =>
+                        setManufacturers((prev) => ({
+                          ...prev,
+                          powerSocket: value,
+                        }))
+                      }
+                    />
+                  </TableCell>
+                  <TableCell>{totals.powerSocketsCount}</TableCell>
+                  <TableCell>{PRICES.powerSocket.price} ₾</TableCell>
+                  <TableCell>{totals.powerSocketsTotal} ₾</TableCell>
+                </div>
 
-              <div>სანათი ({totals.lightsCount} ცალი)</div>
-              <div className="text-right">{totals.lightsTotal} ₾</div>
-
-              <div className="col-span-2 font-medium text-lg border-b pb-2 mt-4">
-                სადენები:
-              </div>
-              {Object.entries(totals.wireLengthsByType).map(
-                ([type, length]) => (
-                  <>
-                    <div>
-                      {type} ({length}მ)
-                    </div>
-                    <div className="text-right">
-                      {(length * prices.wireTypes[type]).toFixed(2)} ₾
-                    </div>
-                  </>
-                )
-              )}
-
-              <div className="col-span-2 font-medium text-lg border-b pb-2 mt-4">
-                დამატებითი:
-              </div>
-
-              <div>მთავარი კარადა</div>
-              <div className="text-right">{prices.cabinet} ₾</div>
-
-              <div>კარადის აწყობა</div>
-              <div className="text-right">{prices.cabinetAssembly} ₾</div>
-
-              <div className="col-span-2 border-t mt-4 pt-4">
-                <div className="flex justify-between items-center text-xl font-bold">
-                  <span>ჯამი:</span>
-                  <span>{totals.subtotal.toFixed(2)} ₾</span>
+                <div className="grid grid-cols-5 gap-4">
+                  <TableCell>სანათი</TableCell>
+                  <TableCell>
+                    <ManufacturerSelect
+                      value={manufacturers.light}
+                      onChange={(value) =>
+                        setManufacturers((prev) => ({
+                          ...prev,
+                          light: value,
+                        }))
+                      }
+                    />
+                  </TableCell>
+                  <TableCell>{totals.lightsCount}</TableCell>
+                  <TableCell>{PRICES.light.price} ₾</TableCell>
+                  <TableCell>{totals.lightsTotal} ₾</TableCell>
                 </div>
               </div>
             </div>
 
-            <button className="w-full bg-blue-500 text-white py-3 px-6 rounded-lg hover:bg-blue-600 transition-colors mt-4">
-              შეკვეთის განთავსება
-            </button>
+            {/* სადენები */}
+            <div className="py-4">
+              <div className="grid grid-cols-5 gap-4 mb-2">
+                <TableHeader>სადენები:</TableHeader>
+                <TableHeader>მწარმოებელი</TableHeader>
+                <TableHeader>სიგრძე (მ)</TableHeader>
+                <TableHeader>ერთ. ფასი</TableHeader>
+                <TableHeader>ჯამი</TableHeader>
+              </div>
+
+              <div className="space-y-2">
+                {Object.entries(totals.wireLengthsByType).map(
+                  ([type, length]) => (
+                    <div key={type} className="grid grid-cols-5 gap-4">
+                      <TableCell>{type}</TableCell>
+                      <TableCell>
+                        <ManufacturerSelect
+                          value={
+                            manufacturers.wires[type] || MANUFACTURERS.CABLES[0]
+                          }
+                          onChange={(value) =>
+                            setManufacturers((prev) => ({
+                              ...prev,
+                              wires: {
+                                ...prev.wires,
+                                [type]: value,
+                              },
+                            }))
+                          }
+                          type="CABLES"
+                        />
+                      </TableCell>
+                      <TableCell>{length}</TableCell>
+                      <TableCell>{PRICES.wireTypes[type].price} ₾</TableCell>
+                      <TableCell>
+                        {(length * PRICES.wireTypes[type].price).toFixed(2)} ₾
+                      </TableCell>
+                    </div>
+                  )
+                )}
+              </div>
+            </div>
+
+            {/* დამატებითი */}
+            <div className="pt-4">
+              <div className="grid grid-cols-5 gap-4 mb-2">
+                <TableHeader>დამატებითი:</TableHeader>
+                <TableHeader>მწარმოებელი</TableHeader>
+                <TableHeader>რაოდენობა</TableHeader>
+                <TableHeader>ფასი</TableHeader>
+                <TableHeader>ჯამი</TableHeader>
+              </div>
+
+              <div className="space-y-2">
+                <div className="grid grid-cols-5 gap-4">
+                  <TableCell>მთავარი კარადა</TableCell>
+                  <TableCell>{PRICES.cabinet.manufacturer}</TableCell>
+                  <TableCell>1</TableCell>
+                  <TableCell>{PRICES.cabinet.price} ₾</TableCell>
+                  <TableCell>{PRICES.cabinet.price} ₾</TableCell>
+                </div>
+
+                <div className="grid grid-cols-5 gap-4">
+                  <TableCell>კარადის აწყობა</TableCell>
+                  <TableCell>-</TableCell>
+                  <TableCell>1</TableCell>
+                  <TableCell>{PRICES.cabinetAssembly.price} ₾</TableCell>
+                  <TableCell>{PRICES.cabinetAssembly.price} ₾</TableCell>
+                </div>
+              </div>
+            </div>
+
+            {/* ჯამი */}
+            <div className="pt-4 mt-4">
+              <div className="flex justify-between items-center">
+                <span className="font-medium">ჯამი:</span>
+                <span className="font-medium">
+                  {totals.subtotal.toFixed(2)} ₾
+                </span>
+              </div>
+            </div>
           </div>
+
+          <button className="w-full bg-blue-500 text-white text-sm py-2 px-4 rounded mt-6 hover:bg-blue-600">
+            შეკვეთის განთავსება
+          </button>
         </div>
       </div>
     </div>
   );
 };
+// App/components/CircuitDiagram.jsx
+import { Lamp, Power, Home, Plus, Zap } from "lucide-react";
+import standardSocketImage from "../assets/socket.png";
+import lightImage from "../assets/light.png";
+import automatImage from "../assets/automat.png";
+import automatOrdinaryImage from "../assets/automatOrdinary.png";
 
 const CircuitDiagram = () => {
   const powerOptions = [50, 100, 150, 200, 250, 300];
@@ -167,9 +323,9 @@ const CircuitDiagram = () => {
     },
   });
   const [isPriceModalOpen, setIsPriceModalOpen] = useState(false);
+
   const images = {
     standardSocket: standardSocketImage,
-
     light: lightImage,
     automat: automatImage,
     automatOrdinary: automatOrdinaryImage,
