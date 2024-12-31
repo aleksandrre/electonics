@@ -1,9 +1,150 @@
 import React, { useState } from "react";
 import { Lamp, Power, Home, Plus, X, Zap } from "lucide-react";
-import standardSocketImage from "../assets/socket.jpg";
-import lightImage from "../assets/light.jpg";
-import automatImage from "../assets/automat.jpg";
-import automatOrdinaryImage from "../assets/automatOrdinary.jpg";
+import standardSocketImage from "../assets/socket.png";
+import lightImage from "../assets/light.png";
+import automatImage from "../assets/automat.png";
+import automatOrdinaryImage from "../assets/automatOrdinary.png";
+const PriceCalculatorModal = ({ isOpen, onClose, rooms, wireParams }) => {
+  if (!isOpen) return null;
+
+  const prices = {
+    standardSocket: 12,
+    powerSocket: 15,
+    light: 25,
+    cabinet: 300,
+    cabinetAssembly: 200,
+    wireTypes: {
+      "3X1.5": 2.5,
+      "3X2.5": 3.5,
+      "3X4": 4.5,
+      "3X6": 6.0,
+      "5X6": 8.0,
+    },
+  };
+
+  const calculateTotals = () => {
+    let standardSocketsCount = 0;
+    let powerSocketsCount = 0;
+    let lightsCount = 0;
+    let wireLengthsByType = {};
+
+    rooms.forEach((room) => {
+      standardSocketsCount += parseInt(room.standardSockets || 0);
+      powerSocketsCount += parseInt(room.powerSockets || 0);
+      lightsCount += parseInt(room.lights || 0);
+    });
+
+    // Calculate wire lengths by type
+    Object.entries(wireParams).forEach(([wireId, params]) => {
+      const { thickness, length } = params;
+      wireLengthsByType[thickness] =
+        (wireLengthsByType[thickness] || 0) + parseFloat(length);
+    });
+
+    const standardSocketsTotal = standardSocketsCount * prices.standardSocket;
+    const powerSocketsTotal = powerSocketsCount * prices.powerSocket;
+    const lightsTotal = lightsCount * prices.light;
+
+    const wiringTotal = Object.entries(wireLengthsByType).reduce(
+      (total, [type, length]) => total + length * prices.wireTypes[type],
+      0
+    );
+
+    const subtotal =
+      standardSocketsTotal +
+      powerSocketsTotal +
+      lightsTotal +
+      wiringTotal +
+      prices.cabinet +
+      prices.cabinetAssembly;
+
+    return {
+      standardSocketsCount,
+      powerSocketsCount,
+      lightsCount,
+      wireLengthsByType,
+      standardSocketsTotal,
+      powerSocketsTotal,
+      lightsTotal,
+      wiringTotal,
+      subtotal,
+    };
+  };
+
+  const totals = calculateTotals();
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl">
+        <div className="p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold">ფასების კალკულაცია</h2>
+            <button
+              onClick={onClose}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <X size={24} />
+            </button>
+          </div>
+
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+              <div className="col-span-2 font-medium text-lg border-b pb-2">
+                კომპონენტები:
+              </div>
+
+              <div>სტანდარტული როზეტი ({totals.standardSocketsCount} ცალი)</div>
+              <div className="text-right">{totals.standardSocketsTotal} ₾</div>
+
+              <div>მძლავრი როზეტი ({totals.powerSocketsCount} ცალი)</div>
+              <div className="text-right">{totals.powerSocketsTotal} ₾</div>
+
+              <div>სანათი ({totals.lightsCount} ცალი)</div>
+              <div className="text-right">{totals.lightsTotal} ₾</div>
+
+              <div className="col-span-2 font-medium text-lg border-b pb-2 mt-4">
+                სადენები:
+              </div>
+              {Object.entries(totals.wireLengthsByType).map(
+                ([type, length]) => (
+                  <>
+                    <div>
+                      {type} ({length}მ)
+                    </div>
+                    <div className="text-right">
+                      {(length * prices.wireTypes[type]).toFixed(2)} ₾
+                    </div>
+                  </>
+                )
+              )}
+
+              <div className="col-span-2 font-medium text-lg border-b pb-2 mt-4">
+                დამატებითი:
+              </div>
+
+              <div>მთავარი კარადა</div>
+              <div className="text-right">{prices.cabinet} ₾</div>
+
+              <div>კარადის აწყობა</div>
+              <div className="text-right">{prices.cabinetAssembly} ₾</div>
+
+              <div className="col-span-2 border-t mt-4 pt-4">
+                <div className="flex justify-between items-center text-xl font-bold">
+                  <span>ჯამი:</span>
+                  <span>{totals.subtotal.toFixed(2)} ₾</span>
+                </div>
+              </div>
+            </div>
+
+            <button className="w-full bg-blue-500 text-white py-3 px-6 rounded-lg hover:bg-blue-600 transition-colors mt-4">
+              შეკვეთის განთავსება
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const CircuitDiagram = () => {
   const powerOptions = [50, 100, 150, 200, 250, 300];
@@ -25,7 +166,7 @@ const CircuitDiagram = () => {
       length: "15",
     },
   });
-
+  const [isPriceModalOpen, setIsPriceModalOpen] = useState(false);
   const images = {
     standardSocket: standardSocketImage,
 
@@ -65,7 +206,6 @@ const CircuitDiagram = () => {
         const socketId = `${roomId}-power-socket-${i}`;
         newDevicePowers[socketId] = 100;
         newSmartDevices[socketId] = false;
-        // მავთულის პარამეტრები თითოეული მძლავრი როზეტის წრედისთვის
         newWireParams[`${roomId}-power-wire-${i}`] = {
           thickness: "3X2.5",
           length: "15",
@@ -125,13 +265,13 @@ const CircuitDiagram = () => {
 
   const renderWireParams = (wireId, x, y) => (
     <foreignObject x={x} y={y} width="200" height="60">
-      <div xmlns="http://www.w3.org/1999/xhtml" className="flex gap-2">
+      <div xmlns="http://www.w3.org/1999/xhtml" className="flex gap-1">
         <select
           value={wireParams[wireId]?.thickness || "3X1.5"}
           onChange={(e) =>
             updateWireParams(wireId, "thickness", e.target.value)
           }
-          className="w-20 text-xs p-1 border rounded"
+          className="w-16 text-xs p-1 border rounded"
         >
           {wireThicknessOptions.map((thickness) => (
             <option key={thickness} value={thickness}>
@@ -194,8 +334,8 @@ const CircuitDiagram = () => {
       const powerSocketSpacing = 160;
       const powerSocketsHeight =
         parseInt(room.powerSockets || 0) * powerSocketSpacing;
-      const lightsHeight = 320;
-      const roomPadding = 120;
+      const lightsHeight = 160;
+      const roomPadding = 280;
       return (
         standardSocketsHeight + powerSocketsHeight + lightsHeight + roomPadding
       );
@@ -241,9 +381,9 @@ const CircuitDiagram = () => {
             >
               {/* კარადის კორპუსი */}
               <rect
-                x="150"
+                x="130"
                 y="20"
-                width="200"
+                width="240"
                 height={panelHeight - 40}
                 fill="#d1d5db"
                 stroke="black"
@@ -263,10 +403,11 @@ const CircuitDiagram = () => {
               <g transform="translate(0, 0)">
                 <image
                   href={images.automat}
-                  x="220"
+                  x="200"
                   y="100"
-                  width="60"
-                  height="40"
+                  width="100"
+                  height="65"
+                  alt="automat"
                 />
                 <text
                   x="250"
@@ -283,16 +424,16 @@ const CircuitDiagram = () => {
 
                 {/* შემომავალი ხაზი */}
                 <line
-                  x1="280"
-                  y1="122"
+                  x1="300"
+                  y1="134"
                   x2={circuitStartX}
-                  y2="122"
+                  y2="134"
                   stroke="red"
                   strokeWidth="2"
                 />
 
                 {/* მავთულის პარამეტრები შემომავალი ხაზისთვის */}
-                {renderWireParams("main-power-wire", 355, 90)}
+                {renderWireParams("main-power-wire", 375, 100)}
               </g>
 
               {/* ოთახების წრედები */}
@@ -301,10 +442,20 @@ const CircuitDiagram = () => {
                 const standardSockets = parseInt(room.standardSockets || 0);
                 const powerSockets = parseInt(room.powerSockets || 0);
                 const lights = parseInt(room.lights);
-                const automatOffset = 100;
 
                 return (
                   <g key={room.id}>
+                    {/* ოთახის კარადის ჩარჩო */}
+                    <rect
+                      x="160"
+                      y={baseY - 30}
+                      width="180"
+                      height={(powerSockets + 2) * 160 + 100}
+                      fill="none"
+                      stroke="#666"
+                      strokeWidth="1"
+                      strokeDasharray="5,5"
+                    />
                     {/* ოთახის სახელი */}
                     <text
                       x="250"
@@ -313,7 +464,7 @@ const CircuitDiagram = () => {
                       style={{
                         fontSize: "16px",
                         fontWeight: "bold",
-                        fill: "black",
+                        fill: "red",
                       }}
                     >
                       {room.roomName}
@@ -324,10 +475,11 @@ const CircuitDiagram = () => {
                       <g>
                         <image
                           href={images.automatOrdinary}
-                          x="220"
+                          x="200"
                           y={baseY}
-                          width="60"
-                          height="40"
+                          width="100"
+                          height="65"
+                          alt="automat ordinary"
                         />
                         <text
                           x="250"
@@ -343,23 +495,23 @@ const CircuitDiagram = () => {
                         </text>
 
                         <line
-                          x1="280"
-                          y1={baseY + 20}
+                          x1="300"
+                          y1={baseY + 34}
                           x2={circuitStartX}
-                          y2={baseY + 20}
+                          y2={baseY + 34}
                           stroke="black"
                           strokeWidth="2"
                         />
                         {renderWireParams(
                           `${room.id}-standard-wire`,
-                          355,
-                          baseY - 10
+                          375,
+                          baseY
                         )}
                         <line
                           x1={circuitStartX}
-                          y1={baseY + 20}
+                          y1={baseY + 34}
                           x2={circuitStartX + (standardSockets - 1) * 120 + 20}
-                          y2={baseY + 20}
+                          y2={baseY + 34}
                           stroke="black"
                           strokeWidth="2"
                         />
@@ -375,14 +527,15 @@ const CircuitDiagram = () => {
                               <image
                                 href={images.standardSocket}
                                 x="-20"
-                                y="0"
+                                y="15"
                                 width="40"
                                 height="40"
+                                alt="standard socket"
                               />
                               {smartDevices[socketId] && (
                                 <rect
                                   x="-5"
-                                  y="-5"
+                                  y="10"
                                   width="10"
                                   height="10"
                                   fill="green"
@@ -391,7 +544,7 @@ const CircuitDiagram = () => {
                               {renderDeviceControls(
                                 socketId,
                                 `როზეტი ${i + 1}`,
-                                45
+                                60
                               )}
                             </g>
                           );
@@ -407,10 +560,11 @@ const CircuitDiagram = () => {
                         <g key={socketId}>
                           <image
                             href={images.automatOrdinary}
-                            x="220"
+                            x="200"
                             y={y}
-                            width="60"
-                            height="40"
+                            width="100"
+                            height="65"
+                            alt="automat ordinary"
                           />
                           <text
                             x="250"
@@ -425,31 +579,32 @@ const CircuitDiagram = () => {
                             მძლ.როზეტი {i + 1}
                           </text>
                           <line
-                            x1="280"
-                            y1={y + 20}
+                            x1="300"
+                            y1={y + 34}
                             x2={circuitStartX}
-                            y2={y + 20}
+                            y2={y + 34}
                             stroke="black"
                             strokeWidth="2"
                           />
                           {renderWireParams(
                             `${room.id}-power-wire-${i}`,
-                            355,
-                            y - 10
+                            375,
+                            y
                           )}
 
                           <g transform={`translate(${circuitStartX}, ${y})`}>
                             <image
                               href={images.standardSocket}
                               x="-20"
-                              y="0"
+                              y="15"
                               width="40"
                               height="40"
+                              alt="standard socket"
                             />
                             {smartDevices[socketId] && (
                               <rect
                                 x="-5"
-                                y="-5"
+                                y="10"
                                 width="10"
                                 height="10"
                                 fill="green"
@@ -458,7 +613,7 @@ const CircuitDiagram = () => {
                             {renderDeviceControls(
                               socketId,
                               `მძლავრი ${i + 1}`,
-                              45
+                              60
                             )}
                           </g>
                         </g>
@@ -469,14 +624,15 @@ const CircuitDiagram = () => {
                     <g>
                       <image
                         href={images.automatOrdinary}
-                        x="220"
-                        y={baseY + automatOffset + powerSockets * 160 + 200}
-                        width="60"
-                        height="40"
+                        x="200"
+                        y={baseY + 60 + (powerSockets + 1) * 160}
+                        width="100"
+                        height="65"
+                        alt="automat ordinary"
                       />
                       <text
                         x="250"
-                        y={baseY + automatOffset + powerSockets * 160 + 190}
+                        y={baseY + 50 + (powerSockets + 1) * 160}
                         textAnchor="middle"
                         style={{
                           fontSize: "16px",
@@ -488,24 +644,24 @@ const CircuitDiagram = () => {
                       </text>
 
                       <line
-                        x1="280"
-                        y1={baseY + automatOffset + powerSockets * 160 + 220}
+                        x1="300"
+                        y1={baseY + 94 + (powerSockets + 1) * 160}
                         x2={circuitStartX}
-                        y2={baseY + automatOffset + powerSockets * 160 + 220}
-                        stroke="red"
+                        y2={baseY + 94 + (powerSockets + 1) * 160}
+                        stroke="black"
                         strokeWidth="2"
                       />
                       {renderWireParams(
                         `${room.id}-light-wire`,
-                        355,
-                        baseY + automatOffset + powerSockets * 160 + 190
+                        375,
+                        baseY + 60 + (powerSockets + 1) * 160
                       )}
                       <line
                         x1={circuitStartX}
-                        y1={baseY + automatOffset + powerSockets * 160 + 220}
+                        y1={baseY + 94 + (powerSockets + 1) * 160}
                         x2={circuitStartX + (lights - 1) * 120 + 20}
-                        y2={baseY + automatOffset + powerSockets * 160 + 220}
-                        stroke="blue"
+                        y2={baseY + 94 + (powerSockets + 1) * 160}
+                        stroke="black"
                         strokeWidth="2"
                       />
 
@@ -516,7 +672,7 @@ const CircuitDiagram = () => {
                           <g
                             key={lightId}
                             transform={`translate(${x}, ${
-                              baseY + automatOffset + powerSockets * 160 + 220
+                              baseY + 94 + (powerSockets + 1) * 160
                             })`}
                           >
                             <image
@@ -525,6 +681,7 @@ const CircuitDiagram = () => {
                               y="-20"
                               width="40"
                               height="40"
+                              alt="light"
                             />
                             {smartDevices[lightId] && (
                               <rect
@@ -640,8 +797,28 @@ const CircuitDiagram = () => {
           </form>
         </div>
 
+        {rooms.length > 0 && (
+          <div className="mb-4">
+            <button
+              onClick={() => setIsPriceModalOpen(true)}
+              className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 flex items-center justify-center gap-2 w-full"
+            >
+              <Zap size={20} />
+              ფასების გამოთვლა
+            </button>
+          </div>
+        )}
+
         {/* მთავარი სქემა */}
         {rooms.length > 0 && renderMainPanel()}
+
+        {/* ფასების კალკულატორის მოდალი */}
+        <PriceCalculatorModal
+          isOpen={isPriceModalOpen}
+          onClose={() => setIsPriceModalOpen(false)}
+          rooms={rooms}
+          wireParams={wireParams}
+        />
       </div>
     </div>
   );
