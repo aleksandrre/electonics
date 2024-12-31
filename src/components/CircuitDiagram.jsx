@@ -139,7 +139,7 @@ export const PriceCalculatorModal = ({
           <div className="divide-y divide-red-500 divide-dashed">
             {/* კომპონენტები */}
             <div className="pb-4">
-              <div className="grid grid-cols-5 gap-4 mb-2">
+              <div className="grid grid-cols-5 gap-4 mb-2 text-center">
                 <TableHeader>კომპონენტები:</TableHeader>
                 <TableHeader>მწარმოებელი</TableHeader>
                 <TableHeader>რაოდენობა</TableHeader>
@@ -148,7 +148,7 @@ export const PriceCalculatorModal = ({
               </div>
 
               <div className="space-y-2">
-                <div className="grid grid-cols-5 gap-4">
+                <div className="grid grid-cols-5 gap-4 text-center">
                   <TableCell>სტანდარტული როზეტი</TableCell>
                   <TableCell>
                     <ManufacturerSelect
@@ -166,7 +166,7 @@ export const PriceCalculatorModal = ({
                   <TableCell>{totals.standardSocketsTotal} ₾</TableCell>
                 </div>
 
-                <div className="grid grid-cols-5 gap-4">
+                <div className="grid grid-cols-5 gap-4 text-center">
                   <TableCell>მძლავრი როზეტი</TableCell>
                   <TableCell>
                     <ManufacturerSelect
@@ -184,8 +184,8 @@ export const PriceCalculatorModal = ({
                   <TableCell>{totals.powerSocketsTotal} ₾</TableCell>
                 </div>
 
-                <div className="grid grid-cols-5 gap-4">
-                  <TableCell>სანათი</TableCell>
+                <div className="grid grid-cols-5 gap-4 text-center">
+                  <TableCell>სანათის ჩამრთველი</TableCell>
                   <TableCell>
                     <ManufacturerSelect
                       value={manufacturers.light}
@@ -206,7 +206,7 @@ export const PriceCalculatorModal = ({
 
             {/* სადენები */}
             <div className="py-4">
-              <div className="grid grid-cols-5 gap-4 mb-2">
+              <div className="grid grid-cols-5 gap-4 mb-2 text-center">
                 <TableHeader>სადენები:</TableHeader>
                 <TableHeader>მწარმოებელი</TableHeader>
                 <TableHeader>სიგრძე (მ)</TableHeader>
@@ -217,7 +217,10 @@ export const PriceCalculatorModal = ({
               <div className="space-y-2">
                 {Object.entries(totals.wireLengthsByType).map(
                   ([type, length]) => (
-                    <div key={type} className="grid grid-cols-5 gap-4">
+                    <div
+                      key={type}
+                      className="grid grid-cols-5 gap-4 text-center"
+                    >
                       <TableCell>{type}</TableCell>
                       <TableCell>
                         <ManufacturerSelect
@@ -249,7 +252,7 @@ export const PriceCalculatorModal = ({
 
             {/* დამატებითი */}
             <div className="pt-4">
-              <div className="grid grid-cols-5 gap-4 mb-2">
+              <div className="grid grid-cols-5 gap-4 mb-2 text-center">
                 <TableHeader>დამატებითი:</TableHeader>
                 <TableHeader>მწარმოებელი</TableHeader>
                 <TableHeader>რაოდენობა</TableHeader>
@@ -258,7 +261,7 @@ export const PriceCalculatorModal = ({
               </div>
 
               <div className="space-y-2">
-                <div className="grid grid-cols-5 gap-4">
+                <div className="grid grid-cols-5 gap-4 text-center">
                   <TableCell>მთავარი კარადა</TableCell>
                   <TableCell>{PRICES.cabinet.manufacturer}</TableCell>
                   <TableCell>1</TableCell>
@@ -266,7 +269,7 @@ export const PriceCalculatorModal = ({
                   <TableCell>{PRICES.cabinet.price} ₾</TableCell>
                 </div>
 
-                <div className="grid grid-cols-5 gap-4">
+                <div className="grid grid-cols-5 gap-4 text-center">
                   <TableCell>კარადის აწყობა</TableCell>
                   <TableCell>-</TableCell>
                   <TableCell>1</TableCell>
@@ -850,7 +853,7 @@ const CircuitDiagram = () => {
                             )}
                             {renderDeviceControls(
                               lightId,
-                              `სანათი ${i + 1}`,
+                              `სანათის ჩამრთველი ${i + 1}`,
                               25
                             )}
                           </g>
